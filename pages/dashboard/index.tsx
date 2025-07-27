@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import Image from "next/image";
 import {
   Badge,
-  Box,
+  // Box,
   Divider,
   IconButton,
   Menu,
@@ -151,19 +151,19 @@ const Dashboard = () => {
     const fetchDataDashboard = async () => {
       try {
         const token = Cookies.get("authToken");
-        console.log("🔐 Checking token:", token ? "Present" : "Missing");
+        // console.log("🔐 Checking token:", token ? "Present" : "Missing");
 
         if (!token) {
-          console.log("❌ No token found, redirecting to login");
+          // console.log("❌ No token found, redirecting to login");
           router.replace("/login");
           return;
         }
 
-        console.log("🔄 Testing API connection...");
+        // console.log("🔄 Testing API connection...");
         const isConnectionValid = await testApiConnection();
 
         if (!isConnectionValid) {
-          console.log("❌ API connection failed");
+          // console.log("❌ API connection failed");
           setError("API connection failed. Please check the server.");
           return;
         }
@@ -172,7 +172,7 @@ const Dashboard = () => {
         const userRes = await getRequest("/auth/verify-token");
 
         if (userRes.status !== "success") {
-          console.error("❌ Token verification failed:", userRes);
+          // console.error("❌ Token verification failed:", userRes);
           Cookies.remove("authToken");
           router.replace("/login");
           return;
@@ -494,27 +494,43 @@ const Dashboard = () => {
 
         {/* Header dan Main Content */}
         <div className="flex-1 flex flex-col">
-          <header className="bg-red-700 shadow px-3 py-1 flex justify-between items-center h-[11%]">
+          <header className="bg-red-700 shadow px-6 flex justify-between items-center h-[11%]">
             <div className="flex flex-col flex-1 max-w-[50%]">
               {/* Company Name */}
-              {/* <div className="mb-3">
+              <div className="mb-3 mt-3">
                 {loading ? (
-                  <Skeleton variant="text" width={200} height={28} />
+                  <>
+                    <Skeleton variant="text" width={300} height={32} />{" "}
+                    {/* Untuk setting?.name */}
+                    <Skeleton variant="text" width={500} height={24} />{" "}
+                    {/* Untuk setting?.address */}
+                  </>
                 ) : (
-                  <Typography
-                    variant="h6"
-                    fontWeight="700"
-                    color="white"
-                    sx={{
-                      letterSpacing: 0.5,
-                      fontSize: "1.25rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {setting?.name}
-                  </Typography>
+                  <>
+                    <Typography
+                      variant="h6"
+                      fontWeight="700"
+                      color="white"
+                      sx={{
+                        letterSpacing: 0.5,
+                        fontSize: "1.25rem",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {setting?.name}
+                    </Typography>
+                    <div>
+                      <Typography
+                        variant="subtitle1"
+                        color="white"
+                        sx={{ fontSize: "0.875rem", lineHeight: 1.2 }}
+                      >
+                        {setting?.address}
+                      </Typography>
+                    </div>
+                  </>
                 )}
-              </div> */}
+              </div>
 
               {/* Contact Information */}
               {/*  */}
@@ -582,7 +598,7 @@ const Dashboard = () => {
                             .catch((error) => {
                               console.error("Error updating status:", error);
                             });
-                          window.location.href = `https://admin.fanscosa.co.id/dashboard?menu=results&search=${item.patient_code}&page=1&limit=10`;
+                          window.location.href = `https://rsud-amritambunan.fanscosa.co.id/dashboard?menu=results&search=${item.patient_code}&page=1&limit=10`;
                         }}
                       >
                         <div>
