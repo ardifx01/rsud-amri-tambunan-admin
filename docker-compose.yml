@@ -1,0 +1,17 @@
+services:
+  fanscosa-rsud-amri-tambunan-admin:
+    container_name: fanscosa-rsud-amri-tambunan-admin
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - fanscosa-rsud-amri-tambunan-admin-network
+
+networks:
+  fanscosa-rsud-amri-tambunan-admin-network:
+    external: true
