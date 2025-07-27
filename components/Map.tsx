@@ -52,6 +52,24 @@ const Map = ({ center, zoom }: MapProps): JSX.Element => {
     fetchMapSetting();
   }, [router]);
 
+  // Tampilkan error jika ada
+  if (error) {
+    return (
+      <div style={{ 
+        height: '100%', 
+        width: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        color: '#666',
+        fontSize: '14px'
+      }}>
+        {error}
+      </div>
+    );
+  }
+
   return (
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
       <TileLayer
