@@ -45,7 +45,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             sizes="512x512"
             href="/icon-512x512.png"
           />
-          <link rel="manifest" href="/manifest.json" />
         </Head>
         <Toaster position="top-right" />
         {/* <Script

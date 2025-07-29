@@ -1,18 +1,20 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require("next-pwa");
-
 const nextConfig = {
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/offline',
+        destination: '/offline',
+      },
+    ];
+  },
+  // Atau jika ingin redirect ke halaman offline saat error
+  async redirects() {
+    return [
+      // Tambahkan redirect rules jika diperlukan
+    ];
+  },
 };
 
-const pwaConfig = {
-  dest: "public",
-  register: true,
-  skipWaiting: true,
-  // disable: process.env.NODE_ENV === 'development',
-  fallbacks: {
-    document: '/offline'
-  }
-};
-
-module.exports = withPWA(pwaConfig)(nextConfig);
+module.exports = nextConfig;
