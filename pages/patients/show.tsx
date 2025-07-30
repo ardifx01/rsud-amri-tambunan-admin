@@ -47,19 +47,21 @@ import {
   Close,
   ListAltOutlined,
   PeopleAltTwoTone,
-  QrCode2,
+  // QrCode2,
   RefreshOutlined,
   SearchOutlined,
 } from "@mui/icons-material";
 import { FiArrowLeft, FiX } from "react-icons/fi";
 import { getRequest } from "@/utils/apiClient";
 import LoadingComponent from "@/components/LoadingComponent";
-import QRCodeComponent from "@/components/QRCodeComponent";
+// import QRCodeComponent from "@/components/QRCodeComponent";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import CachedOutlinedIcon from "@mui/icons-material/CachedOutlined";
+import { FaBarcode } from "react-icons/fa";
+import BarcodeComponent from "@/components/BarcodeComponent";
 
 // Register Chart.js components
 ChartJS.register(
@@ -76,6 +78,7 @@ interface Patient {
   patient_code: string;
   nik: string;
   name: string;
+  no_rm: string;
   gender: string;
   barcode?: string;
   place_of_birth: string;
@@ -348,22 +351,22 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
               </p>
             </div>
             <div>
-              <p className="text-md font-semibold text-black">QR CODE</p>
+              <p className="text-md font-semibold text-black">Barcode</p>
               <div className="flex items-center space-x-2">
                 <IconButton onClick={() => setOpen(true)}>
-                  <QrCode2 className="w-5 h-5 text-black" />
+                  <FaBarcode className="w-5 h-5 text-black" />
                 </IconButton>
               </div>
               <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
                 <DialogTitle className="flex justify-between items-center">
-                  <span>QR CODE Pasien</span>
+                  <span>Barcode Pasien</span>
                   <IconButton onClick={() => setOpen(false)}>
                     <FiX className="w-5 h-5 text-gray-700" />
                   </IconButton>
                 </DialogTitle>
                 <DialogContent>
                   <div className="flex justify-center p-4">
-                    {patient.barcode && <QRCodeComponent value={patient.barcode} />}
+                    {patient.no_rm && <BarcodeComponent value={patient.no_rm} />}
                   </div>
                 </DialogContent>
               </Dialog>
