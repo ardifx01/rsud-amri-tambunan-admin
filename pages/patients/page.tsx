@@ -22,15 +22,17 @@ import {
   format,
 } from "date-fns";
 import Cookies from "js-cookie";
-import { FaUser, FaSave } from "react-icons/fa";
-import { DeviceHub, QrCode2 } from "@mui/icons-material";
-import QRCodeComponent from "@/components/QRCodeComponent";
+import { FaUser, FaSave, FaBarcode } from "react-icons/fa";
+import { DeviceHub } from "@mui/icons-material";
+// import QRCodeComponent from "@/components/QRCodeComponent";
 import { FiX } from "react-icons/fi";
+import BarcodeComponent from "@/components/BarcodeComponent";
 
 interface Patient {
   id: string;
   patient_code: string;
   nik: string;
+  no_rm: string;
   name: string;
   gender: string;
   barcode?: string;
@@ -404,23 +406,23 @@ const PatientForm: React.FC<PatientFormProps> = ({ onGlucoseTestSaved }) => {
             </div>
             {selectedPatient.barcode && (
               <div>
-                <p className="text-md font-semibold text-black">QR CODE</p>
+                <p className="text-md font-semibold text-black">Barcode</p>
                 <div className="flex items-center space-x-2">
                   <IconButton onClick={() => setOpen(true)}>
-                    <QrCode2 className="w-5 h-5 text-black" />
+                    <FaBarcode className="w-5 h-5 text-black" />
                   </IconButton>
                 </div>
 
                 <Dialog open={open} onClose={() => {}} maxWidth="xs" fullWidth>
                   <DialogTitle className="flex justify-between items-center">
-                    <span>QR CODE Pasien</span>
+                    <span>Barcode Pasien</span>
                     <IconButton onClick={() => setOpen(false)}>
                       <FiX className="w-5 h-5 text-gray-700" />
                     </IconButton>
                   </DialogTitle>
                   <DialogContent>
                     <div className="flex justify-center p-4">
-                      <QRCodeComponent value={selectedPatient.barcode} />
+                      <BarcodeComponent value={selectedPatient.no_rm} />
                     </div>
                   </DialogContent>
                 </Dialog>
