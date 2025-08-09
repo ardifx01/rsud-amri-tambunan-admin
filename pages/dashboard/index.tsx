@@ -19,7 +19,7 @@ import PatientDetail from "../patients/show";
 import DashboardPage from "./page";
 import { getRequest, putRequest, testApiConnection } from "@/utils/apiClient";
 import {
-  Android,
+  // Android,
   Cast,
   HomeOutlined,
   ListAltOutlined,
@@ -46,6 +46,7 @@ import OfflineForm from "../offlines";
 // import HistoryIcon from "@mui/icons-material/History";
 import ActivityLogs from "../activity_log";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import EditUserPage from "../account_setting/edit";
 
 // Interface definitions
 interface GlucoseTest {
@@ -338,7 +339,7 @@ const Dashboard = () => {
     { name: "Offline", icon: <Cast />, menu: "offlines" },
     { name: "Patients", icon: <PeopleOutline />, menu: "patients" },
     { name: "Results", icon: <ListAltOutlined />, menu: "results" },
-    { name: "Build APK", icon: <Android />, menu: "build_apk" },
+    // { name: "Build APK", icon: <Android />, menu: "build_apk" },
     {
       name: "User Accounts",
       icon: <ManageAccountsOutlined />,
@@ -392,6 +393,8 @@ const Dashboard = () => {
         ) : (
           <AccountSettingPage />
         );
+      case "edit_account_setting": // Tambahkan case ini
+        return <EditUserPage />;
       case "user_detail":
         return selectedUserID ? (
           <UserDetailsPage userID={selectedUserID} />
@@ -402,13 +405,6 @@ const Dashboard = () => {
         return <GeneralPage />;
       case "activity_log":
         return <ActivityLogs />;
-      // case "backup_settings":
-      //   return (
-      //     <div className="p-6">
-      //       <h2 className="text-2xl font-bold mb-4">Backup & Restore</h2>
-      //       <p>Backup and restore functionality will be implemented here.</p>
-      //     </div>
-      //   );
       default:
         return <DashboardPage />;
     }

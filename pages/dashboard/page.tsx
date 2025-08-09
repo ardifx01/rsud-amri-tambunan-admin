@@ -67,17 +67,6 @@ const DashboardPage = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [setting, setSetting] = useState<Setting | null>(null);
 
-  const location: [number, number] = [3.557347619394018, 98.8678413423282];
-  const zoomLevel: number = 30;
-  const Map = useMemo(
-    () =>
-      dynamic(() => import("@/components/Map"), {
-        loading: () => <p>Loading Map...</p>,
-        ssr: false,
-      }),
-    []
-  );
-
   const yearOptions = useMemo(() => {
     return Array.from({ length: currentYear - 2024 + 1 }, (_, i) => 2024 + i);
   }, [currentYear]);
@@ -122,6 +111,10 @@ const DashboardPage = () => {
           getRequest("/api/connection-status/all-devices-status"),
           getRequest("/api/setting"),
         ]);
+
+        // console.log("settingRes:", settingRes);
+        // console.log("settingRes status:", settingRes.status);
+        // console.log("settingRes data:", settingRes.data);
 
         if (
           patientsRes.status === "success" &&
@@ -197,6 +190,22 @@ const DashboardPage = () => {
   const handleYearChange = (event: SelectChangeEvent<number>) => {
     setSelectedYear(Number(event.target.value));
   };
+
+  const zoomLevel: number = 17;
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("@/components/Map"), {
+        loading: () => <p>Loading Map...</p>,
+        ssr: false,
+      }),
+    []
+  );
+  const location: [number, number] = [
+    setting?.lat ? Number(setting.lat) : 0,
+    setting?.lng ? Number(setting.lng) : 0,
+  ];
+
+  
 
   // Explicitly typed chart options
   const chartOptions: ApexOptions = {
@@ -487,7 +496,7 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 mt-5 shadow-md">
         <div className="bg-white shadow-md rounded-lg p-4 h-150 md:h-[350px]">
-            <Map center={location} zoom={zoomLevel} />
+          <Map center={location} zoom={zoomLevel} />
         </div>
       </div>
     </>

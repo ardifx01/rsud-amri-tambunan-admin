@@ -22,7 +22,6 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  // Tooltip,
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/router";
@@ -199,9 +198,14 @@ const AccountSettingPage = () => {
     handleCloseMenu(); // Menutup menu setelah klik
   };
 
-  const handleEdit = (userId: any) => {
-    // Implementasi untuk edit user
-    console.log("Edit user:", userId);
+  // Updated handleEdit function
+  const handleEdit = () => {
+    if (selectedUser && selectedUser.id) {
+      router.push(`/dashboard?menu=edit_account_setting&id=${selectedUser.id}`);
+    } else {
+      console.error("Selected user or user ID is invalid.");
+      showErrorToast("Please select a user first.");
+    }
     handleCloseMenu();
   };
 
@@ -349,17 +353,6 @@ const AccountSettingPage = () => {
                   >
                     Roles
                   </TableCell>
-                  {/* <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      backgroundColor: "#F9FAFB",
-                      color: "#374151",
-                      borderBottom: "2px solid #E5E7EB",
-                      width: "25%",
-                    }}
-                  >
-                    Permissions
-                  </TableCell> */}
                   <TableCell
                     sx={{
                       fontWeight: 600,
@@ -418,27 +411,6 @@ const AccountSettingPage = () => {
                           />
                         ))}
                       </TableCell>
-                      {/* <TableCell>
-                        <Box
-                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-                        >
-                          {user.permissions.map((permission) => (
-                            <Chip
-                              key={permission.id}
-                              label={permission.name}
-                              size="small"
-                              sx={{
-                                backgroundColor: "#F3E8FF",
-                                color: "#7E22CE",
-                                fontWeight: 500,
-                                fontSize: "0.75rem",
-                                borderRadius: "4px",
-                                "&:hover": { backgroundColor: "#E9D5FF" },
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      </TableCell> */}
                       <TableCell>
                         <IconButton onClick={(e) => handleMenuClick(e, user)}>
                           <CgMoreVertical />
@@ -461,8 +433,7 @@ const AccountSettingPage = () => {
                           </MenuItem>
                           <MenuItem
                             onClick={() => {
-                              handleEdit(user.id);
-                              handleCloseMenu(); // Close menu after clicking
+                              handleEdit();
                             }}
                             className="flex items-center"
                           >
@@ -510,19 +481,18 @@ const AccountSettingPage = () => {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between", // Menyusun elemen di kiri dan kanan
-              alignItems: "center", // Memastikan elemen vertikal rata tengah
-              padding: "16px", // Padding untuk memberikan ruang
-              borderTop: "1px solid #ddd", // Garis pemisah antara tabel dan pagination
-              backgroundColor: "#fafafa", // Latar belakang abu-abu muda
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px",
+              borderTop: "1px solid #ddd",
+              backgroundColor: "#fafafa",
             }}
           >
-            {/* Informasi Jumlah Data */}
             <Typography
               variant="body2"
               sx={{
-                color: "#555", // Warna teks abu-abu gelap
-                fontWeight: "bold", // Font tebal
+                color: "#555",
+                fontWeight: "bold",
               }}
             >
               Showing {page * rowsPerPage + 1} -{" "}
@@ -530,7 +500,6 @@ const AccountSettingPage = () => {
               results
             </Typography>
 
-            {/* Pagination */}
             <TablePagination
               count={totalUser}
               page={page}
@@ -538,15 +507,15 @@ const AccountSettingPage = () => {
               onPageChange={(_e, newPage) => setPage(newPage)}
               onRowsPerPageChange={(e) => {
                 setRowsPerPage(Number(e.target.value));
-                setPage(0); // Reset ke halaman pertama saat rows per page berubah
+                setPage(0);
               }}
-              rowsPerPageOptions={[5, 10, 25, 50]} // Opsi jumlah baris per halaman
+              rowsPerPageOptions={[5, 10, 25, 50]}
               labelRowsPerPage={
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "#555", // Warna teks abu-abu gelap
-                    fontWeight: "bold", // Font tebal
+                    color: "#555",
+                    fontWeight: "bold",
                   }}
                 >
                   Rows per page:
@@ -554,21 +523,21 @@ const AccountSettingPage = () => {
               }
               sx={{
                 "& .MuiTablePagination-toolbar": {
-                  minHeight: "48px", // Mengatur tinggi toolbar
-                  padding: "0 16px", // Padding di dalam toolbar
+                  minHeight: "48px",
+                  padding: "0 16px",
                 },
                 "& .MuiTablePagination-selectLabel": {
-                  color: "#555", // Warna teks abu-abu gelap
-                  fontWeight: "bold", // Font tebal
+                  color: "#555",
+                  fontWeight: "bold",
                 },
                 "& .MuiTablePagination-select": {
-                  color: "#333", // Warna teks hitam pekat
-                  fontWeight: "bold", // Font tebal
+                  color: "#333",
+                  fontWeight: "bold",
                 },
                 "& .MuiTablePagination-actions button": {
-                  color: "#0055ff", // Warna ikon pagination orange
+                  color: "#0055ff",
                   "&:hover": {
-                    backgroundColor: "rgba(0, 136, 255, 0.1)", // Efek hover lembut
+                    backgroundColor: "rgba(0, 136, 255, 0.1)",
                   },
                 },
               }}
@@ -592,121 +561,5 @@ const AccountSettingPage = () => {
     </>
   );
 };
+
 export default AccountSettingPage;
-// const AccountSettingPage = () => {
-
-//   const [formData, setFormData] = useState({
-//     name: "",
-//     email: "",
-//     password: "",
-//     role_id: "",
-//   });
-
-//   const roles = [
-//     { id: 1, name: "Admin" },
-//     { id: 2, name: "User" },
-//     { id: 3, name: "Manager" },
-//   ];
-
-//   const handleChange = (
-//     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-//   ) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     console.log("User Data:", formData);
-//     // Tambahkan logic API untuk menyimpan user di backend
-//   };
-
-//   return (
-//     <>
-//       <Head>
-//         <title>COSA APP | User Account</title>
-//         <link rel="icon" href="/assets/images/icon/icon_cosaapp.ico" />
-//       </Head>
-
-//       <div className="flex items-center space-x-4 mt-3">
-//         <ManageAccountsOutlined className="h-7 w-7" />
-//         <h2 className="text-xl font-semibold">User Account</h2>
-//       </div>
-
-//       <div className="flex items-center space-x-4 mt-3">
-//         <Container maxWidth="sm">
-//           <Box
-//             sx={{
-//               mt: 5,
-//               p: 3,
-//               boxShadow: 3,
-//               borderRadius: 2,
-//               bgcolor: "background.paper",
-//             }}
-//           >
-//             <Typography variant="h5" gutterBottom>
-//               Tambah User
-//             </Typography>
-//             <form onSubmit={handleSubmit}>
-//               <TextField
-//                 fullWidth
-//                 label="Name"
-//                 name="name"
-//                 value={formData.name}
-//                 onChange={handleChange}
-//                 margin="normal"
-//                 required
-//               />
-//               <TextField
-//                 fullWidth
-//                 label="Email"
-//                 name="email"
-//                 type="email"
-//                 value={formData.email}
-//                 onChange={handleChange}
-//                 margin="normal"
-//                 required
-//               />
-//               <TextField
-//                 fullWidth
-//                 label="Password"
-//                 name="password"
-//                 type="password"
-//                 value={formData.password}
-//                 onChange={handleChange}
-//                 margin="normal"
-//                 required
-//               />
-//               <TextField
-//                 fullWidth
-//                 select
-//                 label="Role"
-//                 name="role_id"
-//                 value={formData.role_id}
-//                 onChange={handleChange}
-//                 margin="normal"
-//                 required
-//               >
-//                 {roles.map((role) => (
-//                   <MenuItem key={role.id} value={role.id}>
-//                     {role.name}
-//                   </MenuItem>
-//                 ))}
-//               </TextField>
-//               <Button
-//                 type="submit"
-//                 variant="contained"
-//                 color="primary"
-//                 fullWidth
-//                 sx={{ mt: 2 }}
-//               >
-//                 Simpan
-//               </Button>
-//             </form>
-//           </Box>
-//         </Container>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default AccountSettingPage;

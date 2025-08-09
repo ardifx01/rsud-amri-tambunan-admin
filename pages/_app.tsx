@@ -4,14 +4,18 @@ import { Toaster } from "react-hot-toast";
 import Head from "next/head";
 // import { useEffect } from "react";
 import ServerStatusHandler from "@/components/ServerStatusHandler";
+import { useEffect } from "react";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  
-  // useEffect(() => {
-  //   document.addEventListener("contextmenu", (e) => e.preventDefault());
-  //   return () =>
-  //     document.removeEventListener("contextmenu", (e) => e.preventDefault());
-  // }, []);
+  useEffect(() => {
+    const disableRightClick = (e: { preventDefault: () => void; }) => {
+      e.preventDefault();
+    };
+    document.addEventListener("contextmenu", disableRightClick);
+    return () => {
+      document.removeEventListener("contextmenu", disableRightClick);
+    };
+  }, []);
 
   return (
     <>

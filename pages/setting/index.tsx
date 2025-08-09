@@ -13,6 +13,8 @@ interface Setting {
   email: any;
   phone: any;
   maps: any;
+  lat: any;
+  lng: any;
 }
 
 interface FormErrors {
@@ -21,6 +23,8 @@ interface FormErrors {
   email: boolean;
   phone: boolean;
   maps: boolean;
+  lat?: boolean;
+  lng?: boolean;
 }
 
 const GeneralPage = () => {
@@ -31,6 +35,8 @@ const GeneralPage = () => {
     email: "",
     phone: "",
     maps: "",
+    lat: "",
+    lng: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({
@@ -39,6 +45,8 @@ const GeneralPage = () => {
     address: false,
     phone: false,
     maps: false,
+    lat: false,
+    lng: false,
   });
 
   const fetchSetting = useCallback(async () => {
@@ -55,6 +63,8 @@ const GeneralPage = () => {
           email: "",
           phone: "",
           maps: "",
+          lat: "",
+          lng: "",
         });
       }
     } catch (error) {
@@ -66,6 +76,8 @@ const GeneralPage = () => {
         email: "",
         phone: "",
         maps: "",
+        lat: "",
+        lng: "",
       });
     }
   }, []);
@@ -93,6 +105,8 @@ const GeneralPage = () => {
       address: !setting.address,
       phone: !setting.phone,
       maps: !setting.maps,
+      lat: !setting.lat,
+      lng: !setting.lng,
     };
     setErrors(newErrors);
     if (Object.values(newErrors).some(Boolean)) {
@@ -106,6 +120,8 @@ const GeneralPage = () => {
         phone: setting.phone,
         email: setting.email,
         maps: setting.maps,
+        lat: setting.lat,
+        lng: setting.lng,
       };
       
       // Perbaikan endpoint API - sebelumnya menggunakan endpoint patients yang tidak sesuai
@@ -210,17 +226,32 @@ const GeneralPage = () => {
             </Grid>
             
             {/* Maps field */}
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <TextField
                 required
                 fullWidth
-                id="maps"
-                label="Maps Location"
-                name="maps"
-                value={setting.maps}
+                id="lat"
+                label="Latitude"
+                name="lat"
+                value={setting.lat}
                 onChange={handleInputChange}
-                error={errors.maps}
-                helperText={errors.maps ? "Valid maps is required" : ""}
+                error={errors.lat}  
+                helperText={errors.lat ? "Valid latitude is required" : ""}
+                variant="outlined"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                required
+                fullWidth
+                id="lng"
+                label="Longitude"
+                name="lng"
+                value={setting.lng}
+                onChange={handleInputChange}
+                error={errors.lng}  
+                helperText={errors.lng ? "Valid longitude is required" : ""}
                 variant="outlined"
               />
             </Grid>

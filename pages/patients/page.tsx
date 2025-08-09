@@ -422,7 +422,13 @@ const PatientForm: React.FC<PatientFormProps> = ({ onGlucoseTestSaved }) => {
                   </DialogTitle>
                   <DialogContent>
                     <div className="flex justify-center p-4">
-                      <BarcodeComponent value={selectedPatient.no_rm} />
+                      {(selectedPatient.no_rm || selectedPatient.barcode) && (
+                        <BarcodeComponent
+                          value={
+                            selectedPatient.no_rm || selectedPatient.barcode
+                          }
+                        />
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>

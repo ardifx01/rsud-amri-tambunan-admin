@@ -110,10 +110,10 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
   const [error, setError] = useState<string | null>(null);
   const [totalRows, setTotalRows] = useState(0);
   const router = useRouter();
-  const {
-    page: queryPage = "1",
-    limit: queryLimit = "10",
-  } = router.query as { page?: string; limit?: string };
+  const { page: queryPage = "1", limit: queryLimit = "10" } = router.query as {
+    page?: string;
+    limit?: string;
+  };
 
   const [rowsPerPage, setRowsPerPage] = useState(Number(queryLimit));
   const [page, setPage] = useState(Number(queryPage) - 1);
@@ -159,7 +159,7 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
         queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
         queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
       }
-      
+
       const result = await getRequest(
         `/api/test-glucosa/patient/${patientId}?${queryParams.toString()}`
       );
@@ -167,27 +167,33 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
       setGlucoseTests(result.data || []);
       // PERBAIKAN: Gunakan 'total_records' sesuai dengan respons API Anda.
       setTotalRows(result.pagination?.total_records || 0);
-
     } catch (error) {
       console.error("Error fetching glucose tests:", error);
       setError("Failed to fetch glucose tests.");
-      setGlucoseTests([]); 
+      setGlucoseTests([]);
     } finally {
       setLoadingTests(false);
     }
-  }, [patientId, page, rowsPerPage, searchTerm, dateFilterType, selectedDate, startDate, endDate]);
-
+  }, [
+    patientId,
+    page,
+    rowsPerPage,
+    searchTerm,
+    dateFilterType,
+    selectedDate,
+    startDate,
+    endDate,
+  ]);
 
   useEffect(() => {
     if (patientId) {
       fetchPatientDetail(patientId);
     }
   }, [patientId]);
-  
+
   useEffect(() => {
     fetchGlucoseTests();
   }, [fetchGlucoseTests]);
-
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -243,7 +249,8 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
 
   const getGlucoseChartData = () => {
     const sortedTests = [...glucoseTests].sort(
-      (a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime()
+      (a, b) =>
+        new Date(a.date_time).getTime() - new Date(b.date_time).getTime()
     );
     const labels = sortedTests.map((test) =>
       new Date(test.date_time).toLocaleDateString("id-ID")
@@ -268,7 +275,7 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
   };
 
   const chartConfig = {
-    type: "line" as const, 
+    type: "line" as const,
     data: getGlucoseChartData(),
     options: {
       responsive: true,
@@ -357,7 +364,12 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                   <FaBarcode className="w-5 h-5 text-black" />
                 </IconButton>
               </div>
-              <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+              <Dialog
+                open={open}
+                onClose={() => setOpen(false)}
+                maxWidth="xs"
+                fullWidth
+              >
                 <DialogTitle className="flex justify-between items-center">
                   <span>Barcode Pasien</span>
                   <IconButton onClick={() => setOpen(false)}>
@@ -366,7 +378,13 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                 </DialogTitle>
                 <DialogContent>
                   <div className="flex justify-center p-4">
-                    {patient.no_rm && <BarcodeComponent value={patient.no_rm} />}
+                    {patient.no_rm ? (
+                      <BarcodeComponent value={patient.no_rm} />
+                    ) : (
+                      patient.barcode && (
+                        <BarcodeComponent value={patient.barcode} />
+                      )
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -560,7 +578,9 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                     {glucoseTests.length > 0 ? (
                       glucoseTests.map((test, index) => (
                         <TableRow key={test.id}>
-                          <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                          <TableCell>
+                            {page * rowsPerPage + index + 1}
+                          </TableCell>
                           <TableCell>
                             {test.lab_number || "Undefined"}
                           </TableCell>
@@ -590,11 +610,15 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                             <SearchOutlined
                               sx={{ fontSize: 40, color: "#9CA3AF", mb: 1 }}
                             />
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            <Typography
+                              variant="body1"
+                              sx={{ fontWeight: 500 }}
+                            >
                               No data available
                             </Typography>
                             <Typography variant="body2" sx={{ mt: 0.5 }}>
-                              Try adjusting your search or filter to find what you&apos;re looking for
+                              Try adjusting your search or filter to find what
+                              you&apos;re looking for
                             </Typography>
                           </Box>
                         </TableCell>
