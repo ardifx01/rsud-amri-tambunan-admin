@@ -1,23 +1,23 @@
-# Gunakan image node
-FROM node:20-alpine
+FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
-
-# Salin file project
-COPY . .
+# Copy package files
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
 # Install dependencies
+RUN npm install -g pnpm
 RUN pnpm install
 
-# Build project
-RUN pnpm build
+# Copy source code
+COPY . .
 
-# Ekspose port
+# Build aplikasi Next.js - INI YANG PENTING!
+RUN pnpm run build
+
+# Expose port
 EXPOSE 3002
 
-# Jalankan aplikasi
+# Start aplikasi
 CMD ["pnpm", "start"]

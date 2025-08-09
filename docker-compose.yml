@@ -1,11 +1,11 @@
 services:
-  fanscosa-rsud-amri-tambunan-admin:
-    container_name: fanscosa-rsud-amri-tambunan-admin
+  rsud-amri-tambunan-admin:
+    container_name: rsud-amri-tambunan-admin
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3002:3000"
+      - "3002:3002"
     restart: always
     environment:
       - NODE_ENV=production
