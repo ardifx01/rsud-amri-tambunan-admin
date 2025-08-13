@@ -53,7 +53,6 @@ import { CgMoreVertical } from "react-icons/cg"; // Import ikon "more"
 
 interface PrintResult {
   gender: string;
-  doctor: string;
   id: number;
   patient_id: number;
   patient_code: string;
@@ -69,7 +68,9 @@ interface PrintResult {
   updated_at: string;
   sample_id: string;
   note: string;
-  technician: string;
+  patient_nik: string;
+  patient_no_rm: string;
+  patient_referral_doctor: string;
   patient_date_of_birth: string;
   patient_gender: string;
   patient_number_phone: string;
@@ -295,39 +296,6 @@ const TestResults = () => {
     fetchDataGlucose();
   };
 
-  // const OrangeSwitch = styled(Switch)(({}) => ({
-  //   "& .MuiSwitch-switchBase.Mui-checked": {
-  //     color: "#FFA500", // Warna orange (sudah divalidasi)
-  //   },
-  //   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-  //     backgroundColor: "#FFA500", // Warna orange (sudah divalidasi)
-  //   },
-  //   "& .MuiSwitch-switchBase:not(.Mui-checked)": {
-  //     color: "#4CAF50", // Warna hijau (belum divalidasi)
-  //   },
-  //   "& .MuiSwitch-switchBase:not(.Mui-checked) + .MuiSwitch-track": {
-  //     backgroundColor: "#4CAF50", // Warna hijau (belum divalidasi)
-  //   },
-  // }));
-
-  // const ValidationSwitch = ({ result }: { result: PrintResult }) => {
-  //   const handleOpenDialog = () => {
-  //     setSelectedResult(result); // Simpan data hasil tes yang dipilih
-  //     setOpenDialog(true); // Buka dialog konfirmasi
-  //   };
-
-  //   // Pastikan is_validation adalah number
-  //   const isChecked = Number(result.is_validation) === 1;
-
-  //   return (
-  //     <OrangeSwitch
-  //       checked={isChecked}
-  //       onChange={handleOpenDialog}
-  //       disabled={isChecked} // Nonaktifkan jika sudah divalidasi
-  //     />
-  //   );
-  // };
-
   const fetchUser = () => {
     const token = Cookies.get("authToken"); // Ambil token dari cookies
 
@@ -484,110 +452,90 @@ const TestResults = () => {
         <div class="watermark">LABORATORY</div>
         
         <div class="max-w-4xl mx-auto bg-white p-8 shadow-lg relative z-10">
-          <header class="border-b border-gray-200 pb-6 mb-6 flex justify-between items-center">
+          <header class="border-b border-gray-200 pb-6 mb-3 flex justify-between items-center">
             <div class="flex items-center gap-4">
               <div class="logo-placeholder">
                 <i class="fas fa-flask text-blue-600 text-2xl"></i>
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-blue-800">RS ANUGERAH REZEKI BERSAMA INDONESIA</h1>
-                <p class="text-gray-500 text-sm">Jl. Setia Luhur Komplek Bisnis Center 1 - 3</p>
-                <p class="text-gray-500 text-sm">Tel: 08219876543 | Email: rsarbi@gmail.com</p>
+                <h1 class="text-2xl font-bold text-blue-800">RSUD Drs. H. Amri Tambunan</h1>
+                <p class="text-gray-500 text-sm">Jl. Mh. Thamrin No.126, Lubuk Pakam Pekan, Kec. Lubuk Pakam, Kabupaten Deli Serdang, Sumatera Utara 20518</p>
+                <p class="text-gray-500 text-sm">Tel: (061) 7952068 | Email: -</p>
               </div>
             </div>
             <div class="text-right">
-              <p class="font-bold text-blue-900">REPORT ID: ${
-                result.id || "GL-" + Math.floor(Math.random() * 100000)
-              }</p>
-              <p class="text-sm text-gray-500">Printed: ${new Date().toLocaleString(
-                "id-ID"
-              )}</p>
-            </div>
-          </header>
-          
-          <section class="mb-8 relative pt-7">
-          <div class="absolute -top-3 right-0 mb-4">
+              
             <div id="barcodeContainer" class="text-center">
             <div id="barcode"></div> <div class="text-xs text-center mt-1 font-medium">${
-              result.patient_barcode || ""
+              result.patient_no_rm || result.patient_barcode
             }</div>
           </div>
-          </div>
+            </div>
+          </header>        
           
-          <div class="mb-10"></div>
-          <h2 class="text-lg font-semibold text-blue-800 pb-1 border-b border-gray-200 mb-7">PATIENT INFORMATION</h2>
+          <h2 class="text-lg font-semibold text-blue-800 border-b border-gray-200">PATIENT INFORMATION</h2>
           <div class="grid grid-cols-2 gap-6">
-            <div>
-              <table class="w-full text-sm">
-                <tbody>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600 w-1/3">Patient ID:</td>
-                    <td class="py-1 font-bold">${result.patient_code}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Patient Name:</td>
-                    <td class="py-1 font-bold">${result.patient_name}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Gender:</td>
-                    <td class="py-1 font-bold">${
-                      result.patient_gender || ""
-                    }</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Age:</td>
-                    <td class="py-1 font-bold">${calculateAge(
-                      result.patient_date_of_birth
-                    )}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Phone:</td>
-                    <td class="py-1 font-bold">${
-                      result.patient_number_phone || ""
-                    }</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            <div>
-              <table class="w-full text-sm">
-                <tbody>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600 w-1/3">Test Date:</td>
-                    <td class="py-1 font-bold">${formatDate(
-                      result.date_time
-                    )}</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Sample ID:</td>
-                    <td class="py-1 font-bold">${
-                      result.sample_id || "GL-" + result.patient_code
-                    }</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Referring Doctor:</td>
-                    <td class="py-1 font-bold">${
-                      result.doctor || "Self-referred"
-                    }</td>
-                  </tr>
-                  <tr>
-                    <td class="py-1 font-medium text-gray-600">Status:</td>
-                    <td class="py-1 font-bold ">${
-                      result.is_validation === 1 ? "Validated" : "Not Validated"
-                    }</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+  <div>
+    <table class="w-full text-sm mt-2">
+      <tbody>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600 w-1/3">Patient ID:</td>
+          <td class="py-0.5 font-bold">${result.patient_code}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Patient Name:</td>
+          <td class="py-0.5 font-bold">${result.patient_name}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Gender:</td>
+          <td class="py-0.5 font-bold">${result.patient_gender || ""}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Age:</td>
+          <td class="py-0.5 font-bold">${calculateAge(
+            result.patient_date_of_birth
+          )}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Phone:</td>
+          <td class="py-0.5 font-bold">${result.patient_number_phone || ""}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div>
+    <table class="w-full text-sm">
+      <tbody>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600 w-1/3">Nik:</td>
+          <td class="py-0.5 font-bold">${result.patient_nik}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600 w-1/3">Test Date:</td>
+          <td class="py-0.5 font-bold">${formatDate(result.date_time)}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Lab Number:</td>
+          <td class="py-0.5 font-bold">${result.lab_number}</td>
+        </tr>
+        <tr>
+          <td class="py-0.5 font-medium text-gray-600">Doctor:</td>
+          <td class="py-0.5 font-bold">${
+            result.patient_referral_doctor || "Self-referred"
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
           <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
           <script>
             document.addEventListener('DOMContentLoaded', function () {
               const barcodeValue = "${
-                result.patient_barcode || result.patient_code
+                result.patient_no_rm || result.patient_barcode
               }";
 
               if (barcodeValue) {
@@ -598,8 +546,8 @@ const TestResults = () => {
 
                   new QRCode(qrContainer, {
                     text: barcodeValue,
-                    width: 80,
-                    height: 80,
+                    width: 65,
+                    height: 60,
                     correctLevel: QRCode.CorrectLevel.H
                   });
                 }
@@ -613,7 +561,7 @@ const TestResults = () => {
         </section>
           
           <section class="mb-8">
-            <h2 class="text-lg font-semibold text-blue-800 mb-3 pb-1 border-b border-gray-200">TEST RESULTS</h2>
+            <h2 class="text-lg font-semibold text-blue-800 mt-3 pb-1 border-b border-gray-200">TEST RESULTS</h2>
             <table class="w-full border-collapse bg-white text-sm">
               <thead>
                 <tr class="bg-gray-100">
@@ -684,8 +632,7 @@ const TestResults = () => {
               </div>
             </div>
             
-            <div class="mt-8 text-center text-sm text-gray-500">
-              <p>This is an electronically verified report. No signature required.</p>
+            <div class="mt-2 text-center text-sm text-gray-500">
               <p class="font-bold mt-1">&copy; ${new Date().getFullYear()} Fans Cosa. All rights reserved.</p>
             </div>
           </footer>
