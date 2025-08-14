@@ -205,8 +205,6 @@ const DashboardPage = () => {
     setting?.lng ? Number(setting.lng) : 0,
   ];
 
-  
-
   // Explicitly typed chart options
   const chartOptions: ApexOptions = {
     chart: {
@@ -456,38 +454,67 @@ const DashboardPage = () => {
             </p>
           ) : (
             <div className="space-y-4">
-              {statusConnection.map((device) => (
-                <div
-                  key={device.id}
-                  className="flex items-center bg-gray-200 px-4 py-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <span className="text-sm text-black mr-4">
-                    {new Date(device.timestamp).toLocaleTimeString()}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-black">
-                      <span className="font-medium">{device.deviceType}</span> (
-                      {device.deviceId}) -{" "}
-                      <strong
-                        className={`${
-                          device.status === "connected"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {device.status === "connected"
-                          ? "Connected"
-                          : "Disconnected"}
-                      </strong>
-                    </p>
+              {statusConnection.map((device) => {
+                // Format tanggal dan waktu yang lebih lengkap
+                const formatDateTime = (timestamp: string | number | Date) => {
+                  const date = new Date(timestamp);
+                  const options: Intl.DateTimeFormatOptions = {
+                    weekday: "short", // "short" | "long" | "narrow"
+                    year: "numeric", // "numeric" | "2-digit"
+                    month: "short", // "short" | "long" | "narrow" | "numeric" | "2-digit"
+                    day: "2-digit", // "numeric" | "2-digit"
+                    hour: "2-digit", // "numeric" | "2-digit"
+                    minute: "2-digit", // "numeric" | "2-digit"
+                    second: "2-digit", // "numeric" | "2-digit"
+                    hour12: false, // boolean
+                  };
+                  return date.toLocaleString("id-ID", options);
+                };
+
+                return (
+                  <div
+                    key={device.id}
+                    className="flex items-center bg-gray-200 px-4 py-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="min-w-0 mr-4">
+                      <span className="text-xs text-gray-600 block">
+                        {formatDateTime(device.timestamp)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-black">
+                        <span className="font-medium">{device.deviceType}</span>{" "}
+                        (
+                        <span className="text-gray-600">{device.deviceId}</span>
+                        ) -{" "}
+                        <strong
+                          className={`${
+                            device.status === "connected"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {device.status === "connected"
+                            ? "Connected"
+                            : "Disconnected"}
+                        </strong>
+                      </p>
+                      {device.details && (
+                        <p className="text-xs text-gray-500 mt-1 truncate">
+                          {device.details}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0">
+                      {device.status === "connected" ? (
+                        <CheckCircleOutlineOutlinedIcon className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <CancelOutlinedIcon className="h-5 w-5 text-red-500" />
+                      )}
+                    </div>
                   </div>
-                  {device.status === "connected" ? (
-                    <CheckCircleOutlineOutlinedIcon className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <CancelOutlinedIcon className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
