@@ -102,6 +102,8 @@ const TestResults = () => {
   const [loading, setLoading] = useState(true);
   const [resultData, setResultData] = useState<PrintResult[]>([]);
   const [totalGlucoseTestResult, setGlucoseTestResult] = useState(0);
+  const [totalFilteredResult, setTotalFilteredResult] = useState(0); // total hasil search
+
   const [dateFilterType, setDateFilterType] = useState<"single" | "range">(
     "single"
   );
@@ -143,7 +145,6 @@ const TestResults = () => {
     try {
       setLoading(true);
 
-      // Membangun query string
       const queryParams = new URLSearchParams();
       queryParams.append("page", (page + 1).toString());
       queryParams.append("limit", rowsPerPage.toString());
@@ -151,16 +152,12 @@ const TestResults = () => {
       if (searchTermResult) {
         queryParams.append("search", searchTermResult);
       }
-
-      // Tambahkan filter tanggal jika dipilih
       if (dateFilterType === "single" && selectedDate) {
         queryParams.append("date_time", selectedDate.format("YYYY-MM-DD"));
       } else if (dateFilterType === "range" && startDate && endDate) {
         queryParams.append("start_date", startDate.format("YYYY-MM-DD"));
         queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
       }
-
-      // Tambahkan filter status validasi jika dipilih
       if (validationStatus) {
         queryParams.append("is_validation", validationStatus);
       }
@@ -168,17 +165,18 @@ const TestResults = () => {
       const response = await getRequest(
         `/api/test-glucosa?${queryParams.toString()}`
       );
+      const { glucosaTest = [], pagination = {} } = response.data;
 
-      console.log("API Response:", response.data); // Debug response dari API
+      setResultData(glucosaTest);
 
-      const { glucosaTest, pagination } = response.data;
-
-      if (!glucosaTest || glucosaTest.length === 0) {
-        console.warn("Tidak ada data terbaru ditemukan!");
-      }
-
-      setResultData(glucosaTest || []);
-      setGlucoseTestResult(pagination?.totalTestPatients || 0);
+      // simpan total keseluruhan & hasil filter
+      setGlucoseTestResult(pagination.totalTestPatients ?? 0);
+      setTotalFilteredResult(
+        pagination.totalFiltered ??
+          pagination.totalSearch ??
+          pagination.filtered ??
+          glucosaTest.length
+      );
     } catch (error) {
       console.error("Error fetching results data:", error);
     } finally {
@@ -864,6 +862,18 @@ const TestResults = () => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
+                    <TableCell colSpan={9} sx={{ backgroundColor: "#f9f9f9" }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: "bold", color: "#333" }}
+                      >
+                        {searchTermResult.trim()
+                          ? `Total Hasil Pencarian: ${totalFilteredResult}`
+                          : `Total Data Keseluruhan: ${totalGlucoseTestResult}`}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       No.
                     </TableCell>
@@ -879,14 +889,7 @@ const TestResults = () => {
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       Date & Time
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
+                    <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       Glucose Value
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
@@ -900,6 +903,7 @@ const TestResults = () => {
                     </TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {resultData.length > 0 ? (
                     resultData.map((glucosaTest, index) => (

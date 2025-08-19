@@ -23,6 +23,8 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Chip,
+  Divider,
 } from "@mui/material";
 import { Line } from "react-chartjs-2";
 import {
@@ -46,15 +48,13 @@ import Head from "next/head";
 import {
   Close,
   ListAltOutlined,
-  PeopleAltTwoTone,
-  // QrCode2,
+  ScienceOutlined,
   RefreshOutlined,
   SearchOutlined,
 } from "@mui/icons-material";
 import { FiArrowLeft, FiX } from "react-icons/fi";
 import { getRequest } from "@/utils/apiClient";
 import LoadingComponent from "@/components/LoadingComponent";
-// import QRCodeComponent from "@/components/QRCodeComponent";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -62,6 +62,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import CachedOutlinedIcon from "@mui/icons-material/CachedOutlined";
 import { FaBarcode } from "react-icons/fa";
 import BarcodeComponent from "@/components/BarcodeComponent";
+import "dayjs/locale/id";
 
 // Register Chart.js components
 ChartJS.register(
@@ -74,18 +75,28 @@ ChartJS.register(
   Legend
 );
 
-interface Patient {
+interface LabOrder {
+  id: number;
   patient_code: string;
+  no_rm: string;
+  no_registrasi: string;
+  referral_doctor: string;
+  lab_number: string;
+  barcode: string;
+  room: string;
   nik: string;
   name: string;
-  no_rm: string;
   gender: string;
-  barcode?: string;
+  note: string | null;
   place_of_birth: string;
   date_of_birth: string;
   address: string;
-  number_phone: string;
-  email: string;
+  number_phone: string | null;
+  email: string | null;
+  status: string;
+  is_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface GlucoseTest {
@@ -98,12 +109,11 @@ interface GlucoseTest {
   metode: string;
 }
 
-interface PatientDetailProps {
-  patientId: string;
+interface LabOrderDetailProps {
+  labOrderId: string;
 }
 
-const PatientDetail = ({ patientId }: PatientDetailProps) => {
-  const [patient, setPatient] = useState<Patient | null>(null);
+const LabOrderDetail = () => {
   const [glucoseTests, setGlucoseTests] = useState<GlucoseTest[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingTests, setLoadingTests] = useState(true);
@@ -113,6 +123,11 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
   const [totalFiltered, setTotalFiltered] = useState(0);
 
   const router = useRouter();
+  const { labOrderId } = router.query;
+  const id = Array.isArray(labOrderId) ? labOrderId[0] : labOrderId;
+
+  const [labOrder, setLabOrder] = useState<LabOrder | null>(null);
+
   const { page: queryPage = "1", limit: queryLimit = "10" } = router.query as {
     page?: string;
     limit?: string;
@@ -131,21 +146,21 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
     "single"
   );
 
-  const fetchPatientDetail = async (id: string) => {
+  const fetchLabOrderDetail = async (id: string) => {
     try {
       setLoading(true);
-      const result = await getRequest(`/api/patients/${id}`);
-      setPatient(result.data);
+      const result = await getRequest(`/v1/bridging/mapping-patient/${id}`);
+      setLabOrder(result.data);
     } catch (error) {
-      console.error("Error fetching patient detail:", error);
-      setError("Failed to fetch patient details.");
+      console.error("Error fetching lab order detail:", error);
+      setError("Failed to fetch lab order details.");
     } finally {
       setLoading(false);
     }
   };
 
   const fetchGlucoseTests = useCallback(async () => {
-    if (!patientId) return;
+    if (!labOrderId) return;
     setLoadingTests(true);
     try {
       const queryParams = new URLSearchParams();
@@ -163,17 +178,20 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
         queryParams.append("end_date", endDate.format("YYYY-MM-DD"));
       }
 
+      // Assuming we need to search by lab_number from the lab order
+      if (labOrder?.lab_number) {
+        queryParams.append("lab_number", labOrder.lab_number);
+      }
+
       const result = await getRequest(
-        `/api/test-glucosa/patient/${patientId}?${queryParams.toString()}`
+        `/api/test-glucosa/lab-order/${labOrderId}?${queryParams.toString()}`
       );
 
       setGlucoseTests(result.data || []);
 
-      // total keseluruhan (misal backend mengirim total_records)
       const totalAllRecords =
         result.pagination?.total_records ?? result.pagination?.total ?? 0;
 
-      // total hasil filter/pencarian (fallback ke jumlah data sekarang)
       const totalFilteredRecords =
         result.pagination?.total_filtered ??
         result.pagination?.filtered ??
@@ -181,8 +199,6 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
 
       setTotalAll(totalAllRecords);
       setTotalFiltered(totalFilteredRecords);
-
-      // untuk pagination tetap pakai totalFiltered
       setTotalRows(totalFilteredRecords);
     } catch (error) {
       console.error("Error fetching glucose tests:", error);
@@ -192,7 +208,7 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
       setLoadingTests(false);
     }
   }, [
-    patientId,
+    labOrderId,
     page,
     rowsPerPage,
     searchTerm,
@@ -200,17 +216,20 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
     selectedDate,
     startDate,
     endDate,
+    labOrder?.lab_number,
   ]);
 
   useEffect(() => {
-    if (patientId) {
-      fetchPatientDetail(patientId);
+    if (id) {
+      fetchLabOrderDetail(id);
     }
-  }, [patientId]);
+  }, [id]);
 
   useEffect(() => {
-    fetchGlucoseTests();
-  }, [fetchGlucoseTests]);
+    if (labOrder) {
+      fetchGlucoseTests();
+    }
+  }, [fetchGlucoseTests, labOrder]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -319,10 +338,27 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
     },
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return "success";
+      case "pending":
+        return "warning";
+      case "cancelled":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  const getOrderStatusColor = (isOrder: number) => {
+    return isOrder === 1 ? "success" : "default";
+  };
+
   if (loading) {
     return (
       <LoadingComponent
-        text="Loading Patient Details..."
+        text="Loading Lab Order Details..."
         spinnerColor="#1e2dfa"
         textColor="#333"
       />
@@ -333,25 +369,26 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
     return <Typography color="error">{error}</Typography>;
   }
 
-  if (!patient) {
-    return <Typography>Patient not found</Typography>;
+  if (!labOrder) {
+    return <Typography>Lab Order not found</Typography>;
   }
 
   const handleBackClick = () => {
-    router.push("/dashboard?menu=patients&page=1&limit=10&search=");
+    router.push("/dashboard?menu=lab-orders&page=1&limit=10&search=");
   };
 
   return (
     <>
       <Head>
-        <title>Patient Details</title>
+        <title>Lab Order Details - {labOrder.lab_number}</title>
         <link rel="icon" href="/assets/images/icon/fanscosa-icon.png" />
       </Head>
+      
       <div className="flex justify-between items-center mb-3">
         <div className="flex justify-start items-center gap-2">
-          <PeopleAltTwoTone className="h-5 w-5 text-black" />
+          <ScienceOutlined className="h-5 w-5 text-black" />
           <h2 className="text-xl font-semibold text-black">
-            Patient Information Details
+            Lab Order Details
           </h2>
         </div>
         <Button
@@ -360,91 +397,155 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
           startIcon={<FiArrowLeft />}
           sx={{ color: "#1976d2", fontWeight: "bold" }}
         >
-          Back
+          Back to Lab Orders
         </Button>
       </div>
 
-      {/* Patient Information */}
+      {/* Lab Order Information */}
       <div className="mt-2">
-        <Paper>
-          <div className="grid grid-cols-2 gap-4 p-4 rounded-md px-4">
-            <div>
-              <p className="text-md font-semibold text-black">Name</p>
-              <p className="font-medium">
-                {patient.name} [ {calculateAge(patient.date_of_birth)} ]
-              </p>
+        <Paper elevation={3}>
+          <Box sx={{ p: 3 }}>
+            <div className="flex justify-between items-center mb-4">
+              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                Lab Order Information
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Chip
+                  label={labOrder.status}
+                  color={getStatusColor(labOrder.status) as any}
+                  variant="filled"
+                />
+                <Chip
+                  label={labOrder.is_order === 1 ? "Ordered" : "Not Ordered"}
+                  color={getOrderStatusColor(labOrder.is_order) as any}
+                  variant="outlined"
+                />
+              </Box>
             </div>
-            <div>
-              <p className="text-md font-semibold text-black">Barcode</p>
-              <div className="flex items-center space-x-2">
-                <IconButton onClick={() => setOpen(true)}>
-                  <FaBarcode className="w-5 h-5 text-black" />
-                </IconButton>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-md font-semibold text-black">Lab Number</p>
+                <p className="font-medium text-blue-600 text-lg">
+                  {labOrder.lab_number}
+                </p>
               </div>
-              <Dialog
-                open={open}
-                onClose={() => setOpen(false)}
-                maxWidth="xs"
-                fullWidth
-              >
-                <DialogTitle className="flex justify-between items-center">
-                  <span>Barcode Pasien</span>
-                  <IconButton onClick={() => setOpen(false)}>
-                    <FiX className="w-5 h-5 text-gray-700" />
+              <div>
+                <p className="text-md font-semibold text-black">Barcode</p>
+                <div className="flex items-center space-x-2">
+                  <IconButton onClick={() => setOpen(true)}>
+                    <FaBarcode className="w-5 h-5 text-black" />
                   </IconButton>
-                </DialogTitle>
-                <DialogContent>
-                  <div className="flex justify-center p-4">
-                    {patient.no_rm ? (
-                      <BarcodeComponent value={patient.no_rm} />
-                    ) : (
-                      patient.barcode && (
-                        <BarcodeComponent value={patient.barcode} />
-                      )
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+                <Dialog
+                  open={open}
+                  onClose={() => setOpen(false)}
+                  maxWidth="xs"
+                  fullWidth
+                >
+                  <DialogTitle className="flex justify-between items-center">
+                    <span>Lab Order Barcode</span>
+                    <IconButton onClick={() => setOpen(false)}>
+                      <FiX className="w-5 h-5 text-gray-700" />
+                    </IconButton>
+                  </DialogTitle>
+                  <DialogContent>
+                    <div className="flex justify-center p-4">
+                      {labOrder.barcode ? (
+                        <BarcodeComponent value={labOrder.barcode} />
+                      ) : (
+                        <BarcodeComponent value={labOrder.lab_number} />
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Patient Code</p>
+                <p className="font-medium">{labOrder.patient_code}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">No. RM</p>
+                <p className="font-medium">{labOrder.no_rm}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Registration No.</p>
+                <p className="font-medium">{labOrder.no_registrasi}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Referral Doctor</p>
+                <p className="font-medium">{labOrder.referral_doctor}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Room</p>
+                <p className="font-medium">{labOrder.room}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Order Date</p>
+                <p className="font-medium">
+                  {dayjs(labOrder.created_at)
+                    .locale("id")
+                    .format("dddd, DD MMMM YYYY HH:mm")}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-md font-semibold text-black">NIK</p>
-              <p className="font-medium">{patient.nik}</p>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Patient Information */}
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+              Patient Information
+            </Typography>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-md font-semibold text-black">Name</p>
+                <p className="font-medium">
+                  {labOrder.name} [ {calculateAge(labOrder.date_of_birth)} ]
+                </p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">NIK</p>
+                <p className="font-medium">{labOrder.nik}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Gender</p>
+                <p className="font-medium">{labOrder.gender}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Place of Birth</p>
+                <p className="font-medium">{labOrder.place_of_birth}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Date of Birth</p>
+                <p className="font-medium">
+                  {new Date(labOrder.date_of_birth).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Phone Number</p>
+                <p className="font-medium">{labOrder.number_phone || "N/A"}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-md font-semibold text-black">Address</p>
+                <p className="font-medium">{labOrder.address}</p>
+              </div>
+              <div>
+                <p className="text-md font-semibold text-black">Email</p>
+                <p className="font-medium">{labOrder.email || "N/A"}</p>
+              </div>
+              {labOrder.note && (
+                <div>
+                  <p className="text-md font-semibold text-black">Note</p>
+                  <p className="font-medium">{labOrder.note}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-md font-semibold text-black">Patient Code</p>
-              <p className="font-medium">{patient.patient_code}</p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Gender</p>
-              <p className="font-medium">{patient.gender}</p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Address</p>
-              <p className="font-medium">{patient.address}</p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Place of Birth</p>
-              <p className="font-medium">{patient.place_of_birth}</p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Phone Number</p>
-              <p className="font-medium">{patient.number_phone}</p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Date of Birth</p>
-              <p className="font-medium">
-                {new Date(patient.date_of_birth).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-            <div>
-              <p className="text-md font-semibold text-black">Email</p>
-              <p className="font-medium">{patient.email}</p>
-            </div>
-          </div>
+          </Box>
         </Paper>
       </div>
 
@@ -606,7 +707,7 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                         Glucose Value
                       </TableCell>
                       <TableCell sx={{ fontWeight: "bold" }}>Unit</TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>Metode</TableCell>
+                      <TableCell sx={{ fontWeight: "bold" }}>Method</TableCell>
                     </TableRow>
                   </TableHead>
 
@@ -650,11 +751,10 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                               variant="body1"
                               sx={{ fontWeight: 500 }}
                             >
-                              No data available
+                              No test results available
                             </Typography>
                             <Typography variant="body2" sx={{ mt: 0.5 }}>
-                              Try adjusting your search or filter to find what
-                              you&apos;re looking for
+                              No glucose tests found for this lab order
                             </Typography>
                           </Box>
                         </TableCell>
@@ -677,10 +777,19 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
                 />
               </Box>
             </Paper>
-            <div className="mb-10"></div>
-            <Paper>
-              <Line data={chartConfig.data} options={chartConfig.options} />
-            </Paper>
+            
+            {/* Chart Section */}
+            {glucoseTests.length > 0 && (
+              <>
+                <div className="mb-10"></div>
+                <Paper elevation={3} sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+                    Glucose Level Trend
+                  </Typography>
+                  <Line data={chartConfig.data} options={chartConfig.options} />
+                </Paper>
+              </>
+            )}
           </>
         )}
       </div>
@@ -688,4 +797,4 @@ const PatientDetail = ({ patientId }: PatientDetailProps) => {
   );
 };
 
-export default PatientDetail;
+export default LabOrderDetail;

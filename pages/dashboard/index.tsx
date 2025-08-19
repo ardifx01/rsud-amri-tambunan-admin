@@ -29,6 +29,7 @@ import {
   ExpandLess,
   ExpandMore,
   Business,
+  Biotech,
   // Backup,
 } from "@mui/icons-material";
 import TestResults from "../results";
@@ -47,6 +48,7 @@ import OfflineForm from "../offlines";
 import ActivityLogs from "../activity_log";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import EditUserPage from "../account_setting/edit";
+import LabOrders from "../lab_orders";
 
 // Interface definitions
 interface GlucoseTest {
@@ -319,6 +321,10 @@ const Dashboard = () => {
     } else if (menu === "results") {
       router.push("/dashboard?menu=results&page=1&limit=10&search=");
       query.search = "";
+    } else if (menu === "lab_orders") {
+      // Tambahkan kondisi ini
+      router.push("/dashboard?menu=lab_orders&page=1&limit=10&search=");
+      query.search = "";
     } else {
       router.push({
         pathname: "/dashboard",
@@ -338,6 +344,7 @@ const Dashboard = () => {
     { name: "Dashboard", icon: <HomeOutlined />, menu: "dashboard" },
     { name: "Offline", icon: <Cast />, menu: "offlines" },
     { name: "Patients", icon: <PeopleOutline />, menu: "patients" },
+    { name: "Lab Orders", icon: <Biotech />, menu: "lab_orders" },
     { name: "Results", icon: <ListAltOutlined />, menu: "results" },
     // { name: "Build APK", icon: <Android />, menu: "build_apk" },
     {
@@ -358,6 +365,7 @@ const Dashboard = () => {
     { name: "Dashboard", icon: <HomeOutlined />, menu: "dashboard" },
     { name: "Offline", icon: <Cast />, menu: "offlines" },
     { name: "Patients", icon: <PeopleOutline />, menu: "patients" },
+    { name: "Lab Orders", icon: <Biotech />, menu: "lab_orders" }, // Tambahkan baris ini
     { name: "Results", icon: <ListAltOutlined />, menu: "results" },
   ];
 
@@ -375,6 +383,8 @@ const Dashboard = () => {
         return <DashboardPage />;
       case "offlines":
         return <OfflineForm />;
+      case "lab_orders":
+        return <LabOrders />;
       case "patients":
         return selectedPatientId ? (
           <PatientDetail patientId={selectedPatientId} />
@@ -594,7 +604,7 @@ const Dashboard = () => {
                             .catch((error) => {
                               console.error("Error updating status:", error);
                             });
-                          window.location.href = `https://rsud-amritambunan.fanscosa.co.id/dashboard?menu=results&search=${item.patient_code}&page=1&limit=10`;
+                          window.location.href = `http://localhost:3002/dashboard?menu=results&search=${item.patient_code}&page=1&limit=10`;
                         }}
                       >
                         <div>
