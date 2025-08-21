@@ -11,6 +11,8 @@ services:
       - NODE_ENV=production
     networks:
       - fanscosa-rsud-amri-tambunan-admin-network
+    mem_limit: 512m   # Maksimal RAM 512 MB
+    cpus: 0.5         # Maksimal 50% dari 1 core CPU
 
 networks:
   fanscosa-rsud-amri-tambunan-admin-network:

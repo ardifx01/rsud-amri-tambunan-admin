@@ -1097,7 +1097,8 @@ const LabOrders = () => {
                         }}
                       >
                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                        <TableCell>
+                        <TableCell>{labOrder.lab_number}</TableCell>
+                        {/* <TableCell>
                           <Box
                             sx={{
                               display: "flex",
@@ -1117,16 +1118,16 @@ const LabOrders = () => {
                             >
                               {labOrder.lab_number}
                             </span>
-                            {/* {labOrder.is_order === 1 && (
+                            {labOrder.is_order === 1 && (
                               <Chip
                                 label="Ordered"
                                 size="small"
                                 color="success"
                                 sx={{ fontSize: "0.7rem" }}
                               />
-                            )} */}
+                            )}
                           </Box>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <Box
                             sx={{
