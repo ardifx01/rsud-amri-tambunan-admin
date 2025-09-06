@@ -116,11 +116,13 @@ const LabOrders = () => {
     limit: queryLimit = "10",
     search: querySearch = "",
     is_order: queryIsOrder = "",
+    room: queryRoom = "",
   } = router.query as {
     page?: string;
     limit?: string;
     search?: string;
     is_order?: string;
+    room?: string;
   };
 
   const [labOrdersData, setLabOrdersData] = useState<LabOrder[]>([]);
@@ -141,6 +143,8 @@ const LabOrders = () => {
     "single"
   );
   const [orderStatus, setOrderStatus] = useState<string>(queryIsOrder);
+  const [selectedRoom, setSelectedRoom] = useState<string>(queryRoom);
+  const [availableRooms, setAvailableRooms] = useState<string[]>([]);
 
   // Patient search states
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -222,6 +226,50 @@ const LabOrders = () => {
     );
   };
 
+  // Function to fetch available rooms
+  const fetchAvailableRooms = useCallback(async () => {
+    try {
+      const token = Cookies.get("authToken");
+      if (!token) {
+        console.error("Authentication token is missing");
+        return;
+      }
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/available-rooms`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success" && response.data?.data?.rooms) {
+        setAvailableRooms(response.data.data.rooms);
+      } else {
+        console.error("Unexpected rooms data format:", response.data);
+        setAvailableRooms([]);
+      }
+    } catch (error) {
+      console.error("Error fetching available rooms:", error);
+      if (axios.isAxiosError(error)) {
+        switch (error.response?.status) {
+          case 403:
+            showErrorToast("You are not authorized to access room data.");
+            break;
+          case 500:
+            showErrorToast("Server error while fetching rooms. Please try again later.");
+            break;
+          default:
+            showErrorToast("Failed to fetch available rooms. Please try again.");
+        }
+      } else {
+        showErrorToast("An unexpected error occurred while fetching rooms.");
+      }
+      setAvailableRooms([]);
+    }
+  }, []);
+
   // Function to search patients
   const searchPatients = useCallback(async (searchQuery: string) => {
     if (!searchQuery || searchQuery.length < 3) {
@@ -299,6 +347,11 @@ const LabOrders = () => {
     return () => clearTimeout(timeoutId);
   }, [patientSearchTerm, isSearchingPatient, searchPatients]);
 
+  // Fetch available rooms on component mount
+  useEffect(() => {
+    fetchAvailableRooms();
+  }, [fetchAvailableRooms]);
+
   // Fetch lab orders data
   const fetchData = useCallback(async () => {
     try {
@@ -325,6 +378,11 @@ const LabOrders = () => {
         queryParams.append("is_order", orderStatus);
       }
 
+      // Room filtering
+      if (selectedRoom) {
+        queryParams.append("room", selectedRoom);
+      }
+
       const response = await getRequest(
         `/v1/bridging/mapping-patient?${queryParams.toString()}`
       );
@@ -336,7 +394,8 @@ const LabOrders = () => {
         searchTerm.trim().length > 0 ||
         selectedDate ||
         (startDate && endDate) ||
-        orderStatus;
+        orderStatus ||
+        selectedRoom;
 
       const totalAll = pagination.totalPatients ?? pagination.total ?? 0;
       const totalFiltered =
@@ -361,6 +420,7 @@ const LabOrders = () => {
     startDate,
     endDate,
     orderStatus,
+    selectedRoom,
     dateFilterType,
   ]);
 
@@ -381,6 +441,13 @@ const LabOrders = () => {
     setOrderStatus(newOrderStatus);
     setPage(0);
     updateQueryParams({ is_order: newOrderStatus, page: "1" });
+  };
+
+  const handleRoomChange = (event: SelectChangeEvent<string>) => {
+    const newRoom = event.target.value as string;
+    setSelectedRoom(newRoom);
+    setPage(0);
+    updateQueryParams({ room: newRoom, page: "1" });
   };
 
   const handleDateChange = (newDate: Dayjs | null) => {
@@ -414,6 +481,7 @@ const LabOrders = () => {
     setStartDate(null);
     setEndDate(null);
     setOrderStatus("");
+    setSelectedRoom("");
     setDateFilterType("single");
     setPage(0);
 
@@ -422,6 +490,7 @@ const LabOrders = () => {
       limit: rowsPerPage.toString(),
       search: "",
       is_order: "",
+      room: "",
     });
 
     fetchData();
@@ -494,131 +563,6 @@ const LabOrders = () => {
     setPatientSearchTerm("");
     setShowNewPatientForm(true);
   };
-
-  // Modal functions
-  // const handleOpenAddModal = () => {
-  //   setEditMode(false);
-  //   setLabOrderData({
-  //     id: null,
-  //     no_rm: "",
-  //     no_registrasi: "",
-  //     referral_doctor: "",
-  //     lab_number: "",
-  //     room: "",
-  //     nik: "",
-  //     name: "",
-  //     gender: "",
-  //     place_of_birth: "",
-  //     date_of_birth: "",
-  //     address: "",
-  //     number_phone: "",
-  //     email: "",
-  //   });
-  //   setErrors({
-  //     no_rm: "",
-  //     no_registrasi: "",
-  //     referral_doctor: "",
-  //     lab_number: "",
-  //     room: "",
-  //     nik: "",
-  //     name: "",
-  //     gender: "",
-  //     place_of_birth: "",
-  //     date_of_birth: "",
-  //     address: "",
-  //     number_phone: "",
-  //     email: "",
-  //   });
-
-  //   // Reset patient search states
-  //   setSelectedPatient(null);
-  //   setPatientSearchTerm("");
-  //   setPatients([]);
-  //   setIsSearchingPatient(true);
-  //   setShowNewPatientForm(false);
-
-  //   setOpenModal(true);
-  // };
-
-  // const handleOpenEditModal = async (selectedLabOrderId: number) => {
-  //   try {
-  //     setEditMode(true);
-  //     const labOrderData = await getRequest(
-  //       `/v1/bridging/mapping-patient/${selectedLabOrderId}`
-  //     );
-
-  //     if (labOrderData.status === "success") {
-  //       const labOrder = labOrderData.data;
-
-  //       let formattedDate = "";
-  //       if (labOrder.date_of_birth) {
-  //         try {
-  //           const date = new Date(labOrder.date_of_birth);
-  //           formattedDate = date.toISOString().split("T")[0];
-  //         } catch (e) {
-  //           console.error("Error formatting date:", e);
-  //           formattedDate = labOrder.date_of_birth;
-  //         }
-  //       }
-
-  //       setLabOrderData({
-  //         id: labOrder.id,
-  //         no_rm: labOrder.no_rm || "",
-  //         no_registrasi: labOrder.no_registrasi || "",
-  //         referral_doctor: labOrder.referral_doctor || "",
-  //         lab_number: labOrder.lab_number || "",
-  //         room: labOrder.room || "",
-  //         nik: labOrder.nik || "",
-  //         name: labOrder.name || "",
-  //         gender: labOrder.gender || "",
-  //         place_of_birth: labOrder.place_of_birth || "",
-  //         date_of_birth: formattedDate,
-  //         address: labOrder.address || "",
-  //         number_phone: labOrder.number_phone || "",
-  //         email: labOrder.email || "",
-  //       });
-
-  //       setSelectedPatient({
-  //         id: labOrder.patient_id || 0,
-  //         no_rm: labOrder.no_rm || "",
-  //         nik: labOrder.nik || "",
-  //         name: labOrder.name || "",
-  //         gender: labOrder.gender || "",
-  //         place_of_birth: labOrder.place_of_birth || "",
-  //         date_of_birth: labOrder.date_of_birth || "",
-  //         address: labOrder.address || "",
-  //         number_phone: labOrder.number_phone || "",
-  //         email: labOrder.email || "",
-  //       });
-
-  //       setIsSearchingPatient(false);
-  //       setShowNewPatientForm(false);
-
-  //       setErrors({
-  //         no_rm: "",
-  //         no_registrasi: "",
-  //         referral_doctor: "",
-  //         lab_number: "",
-  //         room: "",
-  //         nik: "",
-  //         name: "",
-  //         gender: "",
-  //         place_of_birth: "",
-  //         date_of_birth: "",
-  //         address: "",
-  //         number_phone: "",
-  //         email: "",
-  //       });
-
-  //       setOpenModal(true);
-  //     } else {
-  //       showErrorToast("Failed to get lab order data");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error retrieving lab order data:", error);
-  //     showErrorToast("An error occurred while loading lab order data");
-  //   }
-  // };
 
   // Validation function
   const validateLabOrderData = () => {
@@ -762,91 +706,6 @@ const LabOrders = () => {
     }
   };
 
-  // Menu and delete handlers
-  // const handleMenuClick = (
-  //   event: React.MouseEvent<HTMLElement>,
-  //   labOrder: LabOrder
-  // ) => {
-  //   console.log("Selected lab order for action:", labOrder);
-  //   setAnchorEl(event.currentTarget);
-  //   setSelectedLabOrder(labOrder);
-  // };
-
-  // const handleDeleteClick = () => {
-  //   if (!selectedLabOrder) {
-  //     console.error("No lab order selected for deletion.");
-  //     showErrorToast("Please select a lab order first.");
-  //     return;
-  //   }
-
-  //   console.log(
-  //     "Opening delete confirmation for lab order ID:",
-  //     selectedLabOrder.id
-  //   );
-  //   setOpen(true);
-  //   setAnchorEl(null);
-  // };
-
-  // const handleCloseMenu = () => {
-  //   setAnchorEl(null);
-  //   setSelectedLabOrder(null);
-  // };
-
-  // const handleDeleteLabOrder = async () => {
-  //   if (!selectedLabOrder) {
-  //     console.error("No lab order selected for deletion.");
-  //     showErrorToast("No lab order selected for deletion.");
-  //     return;
-  //   }
-
-  //   console.log("Deleting lab order with ID:", selectedLabOrder.id);
-
-  //   try {
-  //     const response = await deleteRequest(
-  //       `/api/lab-orders/${selectedLabOrder.id}`
-  //     );
-  //     if (response.status === "success") {
-  //       showDeleteToast("Lab order deleted successfully!");
-  //       fetchData();
-  //     } else {
-  //       console.error("Failed to delete lab order. Response:", response);
-  //       showErrorToast(response.message || "Failed to delete lab order");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting lab order:", error);
-  //     showErrorToast("An unexpected error occurred");
-  //   } finally {
-  //     setOpen(false);
-  //   }
-  // };
-
-  // Detail view functions
-  // const handleViewDetail = async (id: number) => {
-  //   try {
-  //     setLoadingDetail(true);
-  //     const response = await getRequest(`/v1/bridging/mapping-patient/${id}`);
-
-  //     const data = response?.data?.data || response?.data || response;
-  //     setDetailData(data);
-  //     setOpenDetailModal(true);
-  //   } catch (error) {
-  //     console.error("Error fetching detail:", error);
-  //     if (
-  //       typeof error === "object" &&
-  //       error !== null &&
-  //       "response" in error &&
-  //       typeof (error as any).response?.status === "number" &&
-  //       (error as any).response.status === 404
-  //     ) {
-  //       showErrorToast("Lab order not found");
-  //     } else {
-  //       showErrorToast("Failed to fetch lab order details");
-  //     }
-  //   } finally {
-  //     setLoadingDetail(false);
-  //   }
-  // };
-
   const handleCloseDetail = () => {
     setOpenDetailModal(false);
     setDetailData(null);
@@ -909,7 +768,7 @@ const LabOrders = () => {
           </Grid>
 
           {/* Order Status Filter */}
-          {/* <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <FormControl fullWidth sx={{ height: 55 }}>
               <InputLabel id="order-status-label">Order Status</InputLabel>
               <Select
@@ -921,11 +780,33 @@ const LabOrders = () => {
                 sx={{ height: 55 }}
               >
                 <MenuItem value="">All Orders</MenuItem>
-                <MenuItem value="0">Not Ordered</MenuItem>
-                <MenuItem value="1">Ordered</MenuItem>
+                <MenuItem value="0">Process</MenuItem>
+                <MenuItem value="1">Completed</MenuItem>
               </Select>
             </FormControl>
-          </Grid> */}
+          </Grid>
+
+          {/* Room Filter */}
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth sx={{ height: 55 }}>
+              <InputLabel id="room-filter-label">Filter by Room</InputLabel>
+              <Select
+                labelId="room-filter-label"
+                id="room-filter"
+                value={selectedRoom}
+                label="Filter by Room"
+                onChange={handleRoomChange}
+                sx={{ height: 55 }}
+              >
+                <MenuItem value="">All Rooms</MenuItem>
+                {availableRooms.map((room) => (
+                  <MenuItem key={room} value={room}>
+                    {room}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
           {/* Date Filter Type */}
           <Grid item xs={12}>
@@ -997,16 +878,6 @@ const LabOrders = () => {
           {/* Filter Action Buttons */}
           <Grid item xs={12}>
             <Box sx={{ display: "flex", gap: 2 }}>
-              {/* <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenAddModal}
-                startIcon={<PersonAddIcon />}
-                sx={{ height: 55, flex: 1 }}
-              >
-                Add New Lab Order
-              </Button> */}
-
               <Button
                 variant="contained"
                 color="secondary"
@@ -1052,7 +923,8 @@ const LabOrders = () => {
                         {searchTerm.trim() ||
                         selectedDate ||
                         (startDate && endDate) ||
-                        orderStatus
+                        orderStatus ||
+                        selectedRoom
                           ? `Total Hasil Pencarian: ${totalFilteredLabOrders}`
                           : `Total Data Keseluruhan: ${totalLabOrders}`}
                       </Typography>
@@ -1075,11 +947,11 @@ const LabOrders = () => {
                       Room
                     </TableCell>
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
+                      Status
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       Order Date
                     </TableCell>
-                    {/* <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
-                      Actions
-                    </TableCell> */}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1097,8 +969,7 @@ const LabOrders = () => {
                         }}
                       >
                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                        <TableCell>{labOrder.lab_number}</TableCell>
-                        {/* <TableCell>
+                        <TableCell>
                           <Box
                             sx={{
                               display: "flex",
@@ -1107,27 +978,19 @@ const LabOrders = () => {
                             }}
                           >
                             <span
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                router.push(
-                                  `/lab_orders/show?labOrderId=${labOrder.id}`
-                                );
-                              }}
-                              className="text-blue-500 hover:underline cursor-pointer"
+                              // onClick={(e) => {
+                              //   e.preventDefault();
+                              //   e.stopPropagation();
+                              //   router.push(
+                              //     `/lab_orders/show?labOrderId=${labOrder.id}`
+                              //   );
+                              // }}
+                              className="text-black-500"
                             >
                               {labOrder.lab_number}
                             </span>
-                            {labOrder.is_order === 1 && (
-                              <Chip
-                                label="Ordered"
-                                size="small"
-                                color="success"
-                                sx={{ fontSize: "0.7rem" }}
-                              />
-                            )}
                           </Box>
-                        </TableCell> */}
+                        </TableCell>
                         <TableCell>
                           <Box
                             sx={{
@@ -1140,7 +1003,7 @@ const LabOrders = () => {
                               variant="body2"
                               sx={{ fontWeight: "bold", color: "#333" }}
                             >
-                              {labOrder.name} ({labOrder.gender})
+                              {labOrder.name?.toUpperCase()} ({labOrder.gender})
                             </Typography>
 
                             <Typography
@@ -1161,22 +1024,24 @@ const LabOrders = () => {
                         </TableCell>
 
                         <TableCell>{labOrder.referral_doctor}</TableCell>
-                        <TableCell>{labOrder.room}</TableCell>
+                        <TableCell>{labOrder.room?.toUpperCase()}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={labOrder.is_order === 1 ? "Completed" : "Process"}
+                            color={labOrder.is_order === 1 ? "success" : "warning"}
+                            size="small"
+                            sx={{ 
+                              fontWeight: "bold",
+                              fontSize: "0.75rem",
+                              minWidth: "80px"
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>
                           {dayjs(labOrder.created_at)
                             .locale("id")
                             .format("dddd, DD MMMM YYYY HH:mm")}
                         </TableCell>
-                        {/* <TableCell>
-                          <IconButton
-                            onClick={(event) =>
-                              handleMenuClick(event, labOrder)
-                            }
-                            size="small"
-                          >
-                            <MoreVert />
-                          </IconButton>
-                        </TableCell> */}
                       </TableRow>
                     ))
                   ) : (

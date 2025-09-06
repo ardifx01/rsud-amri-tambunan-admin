@@ -453,20 +453,26 @@ const DashboardPage = () => {
               Loading...
             </p>
           ) : (
-            <div className="space-y-4">
+            // kasih kondisi: jika lebih dari 3 maka kasih scroll
+            <div
+              className={`space-y-4 ${
+                statusConnection.length > 3
+                  ? "max-h-64 overflow-y-auto pr-2"
+                  : ""
+              }`}
+            >
               {statusConnection.map((device) => {
-                // Format tanggal dan waktu yang lebih lengkap
                 const formatDateTime = (timestamp: string | number | Date) => {
                   const date = new Date(timestamp);
                   const options: Intl.DateTimeFormatOptions = {
-                    weekday: "short", // "short" | "long" | "narrow"
-                    year: "numeric", // "numeric" | "2-digit"
-                    month: "short", // "short" | "long" | "narrow" | "numeric" | "2-digit"
-                    day: "2-digit", // "numeric" | "2-digit"
-                    hour: "2-digit", // "numeric" | "2-digit"
-                    minute: "2-digit", // "numeric" | "2-digit"
-                    second: "2-digit", // "numeric" | "2-digit"
-                    hour12: false, // boolean
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
                   };
                   return date.toLocaleString("id-ID", options);
                 };

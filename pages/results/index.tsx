@@ -877,9 +877,9 @@ const TestResults = () => {
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       No.
                     </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
+                    {/* <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       Patient Code
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell sx={{ fontWeight: "bold", fontSize: "16px" }}>
                       Lab Number
                     </TableCell>
@@ -917,7 +917,7 @@ const TestResults = () => {
                         }}
                       >
                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                        <TableCell>{glucosaTest.patient_code}</TableCell>
+                        {/* <TableCell>{glucosaTest.patient_code}</TableCell> */}
                         <TableCell>{glucosaTest.lab_number}</TableCell>
                         <TableCell>{glucosaTest.patient_name}</TableCell>
                         <TableCell>
